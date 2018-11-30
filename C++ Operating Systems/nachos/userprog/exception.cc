@@ -1,0 +1,402 @@
+// exception.cc 
+//	Entry point into the Nachos kernel from user programs.
+//	There are two kinds of things that can cause control to
+//	transfer back to here from user code:
+//
+//	syscall -- The user code explicitly requests to call a procedure
+//	in the Nachos kernel.  Right now, the only function we support is
+//	"Halt".
+//
+//	exceptions -- The user code does something that the CPU can't handle.
+//	For instance, accessing memory that doesn't exist, arithmetic errors,
+//	etc.  
+//
+//	Interrupts (which can also cause control to transfer from user
+//	code into the Nachos kernel) are handled elsewhere.
+//
+// For now, this only handles the Halt() system call.
+// Everything else core dumps.
+//
+// Copyright (c) 1992-1993 The Regents of the University of California.
+// All rights reserved.  See copyright.h for copyright notice and limitation 
+// of liability and disclaimer of warranty provisions.
+
+#include "copyright.h"
+#include "system.h"
+#include "syscall.h"
+#include "filesys.h"
+#include "addrspace.h"
+#include "synchconsole.h"
+extern int hits;
+struct ThreadInfo {
+  Thread* t;
+  int status;
+};
+ThreadInfo proID[50] = {nullptr, 12};
+
+Lock *Lp = new Lock ("PidLock");
+//----------------------------------------------------------------------
+// ExceptionHandler
+// 	Entry point into the Nachos kernel.  Called when a user program
+//	is executing, and either does a syscall, or generates an addressing
+//	or arithmetic exception.
+//
+// 	For system calls, the following is the calling convention:
+//
+// 	system call code -- r2
+//		arg1 -- r4
+//		arg2 -- r5
+//		arg3 -- r6
+//		arg4 -- r7
+//
+//	The result of the system call, if any, must be put back into r2. 
+//
+// And don't forget to increment the pc before returning. (Or else you'll
+// loop making the same system call forever!
+//
+//	"which" is the kind of exception.  The list of possible exceptions 
+//	are in machine.h.
+//----------------------------------------------------------------------
+void incProgramCounter();
+
+//----------------------------------------------------------------------
+//	Reads a byte at a time
+//	Each character is one byte
+//	Want to run this for the length of file name
+//	How the fuck do we check that?
+//----------------------------------------------------------------------
+
+void StartProcess(int name)
+{
+ /* 
+	OpenFile *executable = fileSystem->Open((char*)name);
+	AddrSpace *space;
+
+	if (executable == NULL) {
+	  printf("Unable to open file %s\n", name);
+	  return;
+	}
+	space = new AddrSpace(executable);
+	currentThread->space = space;
+*/
+
+	currentThread->space->InitRegisters();
+	currentThread->space->RestoreState();
+/*
+	for (int i = 0; i < 50; i++) {
+	  if (proID[i].t == nullptr){
+	    proID[i].t = currentThread;
+	    currentThread->space->ID = i;
+	    machine->WriteRegister(2, i);
+	    break;
+	  }
+	}
+*/
+	machine->Run();
+	ASSERT(FALSE);
+}
+
+
+
+
+int length(char* str)
+{
+  int size = 0;
+    for (int i = 0; i < 256; ++i)
+    {
+      int tmp;
+      if (machine->ReadMem((int)&str[i], 1, &tmp) == false){
+	machine->ReadMem((int)&str[i], 1, &tmp);
+      }
+      if (tmp == 0)
+	break;
+
+      size++;
+    }
+    return size;
+}
+
+void readUserSpace(char* kernel_str, char* str, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+      int tmp;
+      if (machine->ReadMem((int)&str[i], 1, &tmp) == false){
+	machine->ReadMem((int)&str[i], 1, &tmp);
+      }
+      kernel_str[i] = (char)tmp;
+    }
+}
+
+void readFile(char* kernel_str, char* buf, int size, OpenFileId name)
+{
+  if (name == 0) {
+    char ch;
+    int i;
+
+    for (i = 0; i < size; i++){
+    	ch = synchConsole->SynchGetChar();
+	if (ch != '\n'){
+	  int tmp = (int) ch;
+	  if ( machine->WriteMem((int)&buf[i], 1, tmp) == false){
+	  machine->WriteMem((int)&buf[i], 1, tmp);
+	  }
+	}
+	else{
+	  machine->WriteRegister(2, i);
+	  break;
+	}
+    }
+
+  }
+
+  else if (name == 1) {
+    ASSERT("Can not read from ConsoleOutput.\n");
+  }
+
+  else {
+    OpenFile* file = currentThread->space->arrayOFP[name];
+    int x = 0;
+    x = file->Read(kernel_str, size);
+
+    for (int i = 0; i < x; i++)
+    {
+      int tmp = kernel_str[i];
+      if( machine->WriteMem((int)&buf[i], 1, tmp) == false){
+      machine->WriteMem((int)&buf[i], 1, tmp);
+      }
+      if (tmp == 0){
+	x = i + 1;
+	break;
+      }
+    }
+
+    machine->WriteRegister(2, x);
+  }
+}
+
+
+void writeFile(char* kernel_str, char* buf, int size, OpenFileId name)
+{
+  if (name == 0) {
+    ASSERT("Can not write to ConsoleInput.\n");
+  }
+  
+  else if(name == 1) {
+    for (int i = 0; i < size; i++){
+      int tmp;
+      if( machine->ReadMem((int)&buf[i], 1, &tmp) == false ){
+      machine->ReadMem((int)&buf[i], 1, &tmp);
+      }
+      synchConsole->SynchPutChar((char) tmp);
+    }
+  }
+  
+  else {
+    OpenFile* file = currentThread->space->arrayOFP[name];
+    int x = 0;
+    for (int i = 0; i < size; i++){
+      int tmp;
+      if( machine->ReadMem((int)&buf[i], 1, &tmp) == false){
+      machine->ReadMem((int)&buf[i], 1, &tmp);
+      }
+      kernel_str[i] = (char) tmp;
+      ++x;
+    }
+
+    file->Write(kernel_str, size);
+  }
+}
+
+void
+ExceptionHandler(ExceptionType which)
+{
+    int type = machine->ReadRegister(2);
+
+    if ((which == SyscallException) && (type == SC_Halt)) {
+	DEBUG('a', "Shutdown, initiated by user program.\n");
+   	interrupt->Halt();
+    }
+    else if ((which == SyscallException) && (type == SC_Exit)) {
+      	DEBUG('b', "Exit, initiated by user program.\n");
+//NEEDS LOCKS ********************************************************************************************
+	int x = machine->ReadRegister(4);
+	proID[currentThread->space->ID].status = x;
+	currentThread->Finish();
+    } 
+    else if ((which == SyscallException) && (type == SC_Exec)) {
+      	DEBUG('c', "Exec, initiated by user program.\n");
+	//int size = 256;
+	char* str = (char*) machine->ReadRegister(4);
+	int size = length(str) + 1;
+	char* name = new char[size];
+	readUserSpace(name, str, size);
+
+	Thread *t = new Thread("ExecThread", true);
+
+
+
+	OpenFile *executable = fileSystem->Open((char*)name);
+	AddrSpace *space;
+
+	if (executable == NULL) {
+	  printf("Unable to open file %s\n", name);
+	  ASSERT(false);
+	}
+	space = new AddrSpace(executable);
+	t->space = space;
+
+	for (int i = 0; i < 50; i++) {
+	  if (proID[i].t == nullptr){
+	    proID[i].t = t;
+	    t->space->ID = i;
+	    machine->WriteRegister(2, i);
+	    break;
+	  }
+	}
+
+
+
+
+	int cast = (int) name;
+	t->Fork(StartProcess, cast);
+	incProgramCounter();
+    }
+
+ 
+    else if ((which == SyscallException) && (type == SC_Join)) {
+     	DEBUG('d', "Join, initiated by user program.\n");
+// NEEDS LOCKS ********************************************************************************************************
+	SpaceId id = machine->ReadRegister(4);
+	Lp->Acquire();
+	Thread *t = proID[id].t;
+	Lp->Release();
+	currentThread->Join(t);
+	Lp->Acquire();
+	int status = proID[id].status;
+	Lp->Release();
+	machine->WriteRegister(2, status);
+	incProgramCounter();
+
+	
+    }
+    else if ((which == SyscallException) && (type == SC_Create)) { 
+      	DEBUG('e', "Create, initiated by user program.\n");
+
+	char* str = (char*) machine->ReadRegister(4);
+	int size = length(str);
+	char* name = new char[size];
+	readUserSpace(name, str, size);
+	int value;
+
+	bool result = fileSystem->Create(name, 0);
+
+	if (result == true)
+	  value = 1;
+
+	else
+	  value = 0;
+
+	machine->WriteRegister(2, value);
+	incProgramCounter();
+    }
+    else if ((which == SyscallException) && (type == SC_Open)) { 
+      	DEBUG('f', "Open, initiated by user program.\n");
+
+	OpenFileId fileIndex;
+	//int size = 256;
+	char* str = (char*) machine->ReadRegister(4);
+	int size = length(str) + 1;
+	char* name = new char[size];
+	readUserSpace(name, str, size);
+
+	OpenFile* File = fileSystem->Open(name);
+
+	for (int i = 2; i < 256; i++) {
+	 if (currentThread->space->arrayOFP[i] == nullptr){
+	  currentThread->space->arrayOFP[i] = File;
+	  fileIndex = i;
+	  break;
+	 }
+	} 
+
+	machine->WriteRegister(2, fileIndex);
+	incProgramCounter();
+
+    }
+    else if ((which == SyscallException) && (type == SC_Read)) {
+
+     	DEBUG('g', "Read, initiated by user program.\n");
+
+        char* buf = (char*) machine->ReadRegister(4);
+	int size = machine->ReadRegister(5);
+	char* kernel_buf = new char[size];
+	OpenFileId name = machine->ReadRegister(6);
+
+	//OpenFile* file = currentThread->space->arrayOFP[name];
+
+	readFile(kernel_buf, buf,  size, name);
+
+	incProgramCounter();
+    }
+    else if ((which == SyscallException) && (type == SC_Write)) { 
+      	DEBUG('h', "Write, initiated by user program.\n");
+
+	char* buf = (char*) machine->ReadRegister(4);
+	int size = machine->ReadRegister(5);
+	char* kernel_buf = new char[size];
+	OpenFileId name = machine->ReadRegister(6);
+
+	//OpenFile* file = currentThread->space->arrayOFP[name];
+
+	writeFile(kernel_buf, buf, size, name);
+
+	incProgramCounter();
+    }
+    else if ((which == SyscallException) && (type == SC_Close)) { 
+      	DEBUG('i', "Close, initiated by user program.\n");
+
+	OpenFileId name = machine->ReadRegister(4);
+	OpenFile* fileName = currentThread->space->arrayOFP[name];
+	currentThread->space->arrayOFP[name] = nullptr;
+	delete fileName;
+	incProgramCounter();
+    }
+    else if ((which == SyscallException) && (type == SC_Fork)) { 
+      	DEBUG('j', "Fork, initiated by user program.\n");
+    }
+    else if ((which == SyscallException) && (type == SC_Yield)) { 
+      	DEBUG('k', "Yield, initiated by user program.\n");
+
+	currentThread->Yield();
+    }
+
+    else if ((which == SyscallException) && (type == SC_Memstats)) { 
+    	int total = stats->numPageFaults + hits;
+	int rate = hits / total;
+	machine->WriteRegister(2,rate);
+
+
+    }
+    else if (which == PageFaultException) {
+	int vaddr = machine->ReadRegister(BadVAddrReg);
+      	currentThread->space->Load(vaddr);
+      }
+    
+    else {
+	printf("Unexpected user mode exception %d %d\n", which, type);
+	ASSERT(FALSE);
+    }
+}
+
+
+void
+incProgramCounter(){
+	int temp = machine->ReadRegister(PCReg);
+	machine->WriteRegister(PrevPCReg, temp);
+	temp = machine->ReadRegister(NextPCReg);
+	machine->WriteRegister(PCReg, temp);
+	temp = temp + 4;
+	machine->WriteRegister(NextPCReg, temp);
+}
+
