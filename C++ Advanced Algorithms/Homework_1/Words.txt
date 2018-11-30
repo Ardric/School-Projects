@@ -1,0 +1,6 @@
+kitchen
+hello
+apple
+computer
+xylem
+dinosaur

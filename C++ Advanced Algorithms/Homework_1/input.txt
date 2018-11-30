@@ -1,0 +1,7 @@
+textbook;8;3
+book;2;1
+bag;5;3
+rake;2;5
+pencil;4;2
+pen;5;2
+marker;6;2

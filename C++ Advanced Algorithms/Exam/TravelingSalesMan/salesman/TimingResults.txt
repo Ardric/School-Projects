@@ -1,0 +1,8 @@
+Graph-d-10-217.txt  :  0.000000
+Graph-d-10-216.txt  :  0.000000
+Graph-d-10-215.txt  :  0.000000
+Graph-d-12-218.txt  :  1.000000
+Graph-d-12-219.txt  :  1.000000
+Graph-d-12-220.txt  :  1.000000
+Graph-u-5-100.txt  :  0.000000
+Graph-u-15-121.txt  :  201.000000
