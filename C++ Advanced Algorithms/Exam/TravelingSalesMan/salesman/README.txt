@@ -25,11 +25,3 @@ https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-clas
 
 Stackoverflow page I used to help me write timestamps to output file.
 https://stackoverflow.com/questions/876901/calculating-execution-time-in-c
-
-
-
-
-Additional Notes:
-	Upon completion I realize that I believe I have overstepped the rules on 
-	what I was supposed to do. Submitting this just to show I spent time on
-	the problem.
