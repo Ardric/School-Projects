@@ -1,0 +1,2 @@
+swap:userprog/exception.cc:	kernel->stats->numPageFaults++;
+userprog/exception.cc:	kernel->stats->numPageFaults++;
