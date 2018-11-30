@@ -1,0 +1,18 @@
+main.cc:    currentThread->Finish();	// NOTE: if the procedure "main" 
+scheduler.cc:    if (currentThread->space != NULL) {	// if this thread is a user program,
+scheduler.cc:        currentThread->SaveUserState(); // save the user's CPU registers
+scheduler.cc:	currentThread->space->SaveState();
+scheduler.cc:    currentThread->setStatus(RUNNING);      // nextThread is now running
+scheduler.cc:    DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());
+scheduler.cc:    if (currentThread->space != NULL) {		// if there is an address space
+scheduler.cc:        currentThread->RestoreUserState();     // to restore, do it.
+scheduler.cc:	currentThread->space->RestoreState();
+synch.cc:	currentThread->Sleep();
+system.cc:    currentThread->setStatus(RUNNING);
+thread.cc:static void ThreadFinish()    { currentThread->Finish(); }
+threadtest.cc:    currentThread->Yield();
+threadtest.cc:    currentThread->Join(t);
+threadtest.cc:    currentThread->Join(f);
+threadtest.cc:  currentThread->Join(t);
+threadtest.cc:    currentThread->Yield();
+threadtest.cc:  currentThread->Yield();
