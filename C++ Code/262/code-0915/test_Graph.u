@@ -1,0 +1,53 @@
+#include "Graph.h"
+#include <sstream>
+using namespace std;
+
+test suite Graph
+{
+fixture:
+  Graph<string> five = Graph<string>();
+  Graph<int> one = Graph<int>();
+
+  setup
+  {
+    istringstream onedat("7 7 3\n");
+    one.read(onedat);
+    istringstream fivedat("S A 5\nS C 10\nA B 4\nC B 2\nB D 4\nC D 2");
+    five.read(fivedat);
+  }
+
+tests:
+
+  test nodes
+  {
+    check(one.getNodes().size()) expect == 1;
+
+    const set<string>& nodes = five.getNodes();
+    check(nodes.count("S")) expect > 0;
+    check(nodes.count("A")) expect > 0;
+    check(nodes.count("B")) expect > 0;
+    check(nodes.count("C")) expect > 0;
+    check(nodes.count("D")) expect > 0;
+  }
+
+  test adj
+  {
+    check(one.getAdjacent(7).count(7)) expect > 0;
+    check(one.getAdjacent(7).size()) expect == 1;
+
+    check(five.getAdjacent("A").count("S")) expect > 0;
+    check(five.getAdjacent("A").count("B")) expect > 0;
+    check(five.getAdjacent("A").size()) expect == 2;
+
+    check(five.getAdjacent("B").size()) expect == 3;
+  }
+
+  test weights
+  {
+    check(one.getWeight(7, 7)) expect == 3;
+    check(five.getWeight("A", "B")) expect == 4;
+    check(five.getWeight("B", "A")) expect == 4;
+    check(five.getWeight("C", "D")) expect == 2;
+  }
+
+}

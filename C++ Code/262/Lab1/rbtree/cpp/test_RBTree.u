@@ -1,0 +1,575 @@
+#include <string>
+#include "RBTree.h"
+
+using namespace std;
+
+test suite RBTree
+{
+  fixture:
+    RBTree<string> empty = RBTree<string>();
+    RBTree<int> oneInt = RBTree<int>();
+    RBTree<string> threeStrings = RBTree<string>();
+    RBTree<char> sevenChars = RBTree<char>();
+    RBTree<int> case2 = RBTree<int>();
+
+    setup {
+      oneInt.add(3);
+
+      threeStrings.add("def");
+      threeStrings.add("ghi");
+      threeStrings.add("abc");
+
+      sevenChars.add('h'); //root
+      sevenChars.add('d'); //first row
+      sevenChars.add('l');
+      sevenChars.add('b'); //second row
+      sevenChars.add('f');
+      sevenChars.add('j');
+      sevenChars.add('n');
+
+      case2.add(15);
+      case2.add(18);
+      case2.add(6);
+      case2.add(3);
+      case2.add(12);
+      case2.add(9);
+    }
+
+  tests:
+    /* TESTING BST CORRECTNESS (black-box) */
+
+    test containsEmpty {
+      check (empty.contains("foo")) expect false;
+    }
+
+    test addContainsRoot {
+      check (oneInt.contains(3)) expect true;
+      check (threeStrings.contains("def")) expect true;
+    }
+
+    test addContainsLeaf {
+      check (threeStrings.contains("abc")) expect true;
+      check (threeStrings.contains("ghi")) expect true;
+      check (sevenChars.contains('b')) expect true;
+      check (sevenChars.contains('n')) expect true;
+    }
+
+    test addContainsInternal {
+      check (sevenChars.contains('d')) expect true;
+      check (sevenChars.contains('l')) expect true;
+    }
+
+    test addContainsFalse {
+      check (oneInt.contains(2)) expect false;
+      check (threeStrings.contains("xyz")) expect false;
+      check (sevenChars.contains('e')) expect false;
+    }
+
+    test size {
+      check (empty.size()) expect == 0;
+      check (oneInt.size()) expect == 1;
+      check (sevenChars.size()) expect == 7;
+    }
+
+    test removeFail {
+      check (empty.remove("foo")) expect false;
+      check (empty.size()) expect == 0;
+      check (sevenChars.remove('e')) expect false;
+      check (sevenChars.size()) expect == 7;
+    }
+
+    test removeLeafLeft {
+      check (threeStrings.remove("abc")) expect true;
+      check (threeStrings.contains("def")) expect true;
+      check (threeStrings.contains("abc")) expect false;
+      check (sevenChars.remove('b')) expect true;
+      check (sevenChars.contains('d')) expect true;
+      check (sevenChars.contains('b')) expect false;
+    }
+
+    test removeLeafRight {
+      // prep work: add tests here to verify that remove works
+      // on right leaf nodes.  Use removeLeafLeft as a model.
+      check (threeStrings.remove("ghi")) expect true;
+      check (threeStrings.contains("def")) expect true;
+      check (threeStrings.contains("ghi")) expect false;
+      check (sevenChars.remove('n')) expect true;
+      check (sevenChars.contains('l')) expect true;
+      check (sevenChars.contains('n')) expect false;
+
+    }
+
+    test removeInternalLeft {
+      check (sevenChars.remove('d')) expect true;
+      check (sevenChars.contains('h')) expect true;
+      check (sevenChars.contains('d')) expect false;
+      check (sevenChars.contains('b')) expect true;
+      check (sevenChars.contains('f')) expect true;
+    }
+
+    test removeInternalRight {
+      check (sevenChars.remove('l')) expect true;
+      check (sevenChars.contains('h')) expect true;
+      check (sevenChars.contains('l')) expect false;
+      check (sevenChars.contains('j')) expect true;
+      check (sevenChars.contains('n')) expect true;
+    }
+
+    test removeRoot {
+      check (threeStrings.remove("def")) expect true;
+      check (threeStrings.contains("def")) expect false;
+      check (threeStrings.contains("abc")) expect true;
+      check (threeStrings.contains("ghi")) expect true;
+      check (sevenChars.remove('h')) expect true;
+      check (sevenChars.contains('h')) expect false;
+      check (sevenChars.contains('d')) expect true;
+      check (sevenChars.contains('l')) expect true;
+      check (sevenChars.contains('f')) expect true;
+      check (sevenChars.contains('j')) expect true;
+    }
+
+    test removeOnly {
+      check (oneInt.remove(3)) expect true;
+      check (oneInt.contains(3)) expect false;
+      check (oneInt.size()) expect == 0;
+    }
+
+    test removeSize {
+      sevenChars.remove('h');
+      check (sevenChars.size()) expect == 6;
+      sevenChars.remove('f');
+      check (sevenChars.size()) expect == 5;
+      threeStrings.remove("abc");
+      check (threeStrings.size()) expect == 2;
+    }
+
+    /* TESTING BALANCE CORRECTNESS (white-box) */
+
+    test addMakeThreeRight {
+      oneInt.add(4);
+      string result = "\n"
+                "3 \n"
+                "+#\n"
+                " 4\n";
+      check (TreeDump::toString(oneInt)) expect == result;
+      check (oneInt.isValidRBTree()) expect true;
+    }
+
+    test addMakeThreeLeft {
+      oneInt.add(2);
+      string result = "\n"
+                " 3\n"
+                "#+\n"
+                "2 \n";
+      check (TreeDump::toString(oneInt)) expect == result;
+      check (oneInt.isValidRBTree()) expect true;
+    }
+
+    test addSplit4 {
+      threeStrings.add("jkl");
+      string result = "\n"
+                "  def   \n"
+                " +-+-+  \n"
+                "abc ghi \n"
+                "     +# \n"
+                "     jkl\n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+
+    test addRotateCase1 {
+      threeStrings.add("abb");
+      threeStrings.add("aaa");
+      string result = "\n"
+      		"     def   \n"
+		"   +--+--+ \n"
+		"  abb   ghi\n"
+		" #=+=#     \n"
+		"aaa abc    \n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+
+    test addRotateCase2 {
+      threeStrings.add("jkl");
+      threeStrings.add("mno");
+      string result = "\n"
+                "   def     \n"
+                " +--+--+   \n"
+                "abc   jkl  \n"
+                "     #=+=# \n"
+                "    ghi mno\n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+
+    test addRotateCase3 {
+      threeStrings.add("ccc");
+      threeStrings.add("aaa");
+      string result = "\n"
+		"     def   \n"
+		"   +--+--+ \n"
+		"  abc   ghi\n"
+		" #=+=#     \n"
+		"aaa ccc    \n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+
+    test addRotateCase4 {
+      threeStrings.add("jkl");
+      threeStrings.add("mno");
+      string result = "\n"
+		"   def     \n"
+		" +--+--+   \n"
+		"abc   jkl  \n"
+		"     #=+=# \n"
+		"    ghi mno\n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+
+    test addPropagate {
+      sevenChars.add('i');
+      string result = "\n"
+                "   h    \n"
+                " +-+==# \n"
+                " d    l \n"
+                "#+#  +++\n"
+                "b f  j n\n"
+                "    #+  \n"
+                "    i   \n";
+      check (TreeDump::toString(sevenChars)) expect == result;
+      check (oneInt.isValidRBTree()) expect true;
+    }
+   
+    test addSplitRotate {
+      sevenChars.add('m');
+      sevenChars.add('e');
+      sevenChars.add('p');
+      sevenChars.add('o');
+      sevenChars.add('q');
+      string result = "\n"
+                "   h        \n"
+                " +-+--+     \n"
+                " d    l     \n"
+                "++-+ ++=#   \n"
+                "b  f j  n   \n"
+                "  #+   ++-+ \n"
+                "  e    m  p \n"
+                "         #+#\n"
+                "         o q\n";
+      check (TreeDump::toString(sevenChars)) expect == result;
+
+      sevenChars.add('r');
+
+      string result2 = "\n"
+                "    h        \n"
+                " +--+---+    \n"
+                " d      n    \n"
+                "++-+  #=+=#  \n"
+                "b  f  l   p  \n"
+                "  #+ +++ +++ \n"
+                "  e  j m o q \n"
+                "           +#\n"
+                "            r\n";
+      check (TreeDump::toString(sevenChars)) expect == result2;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test removeRotateThreeLeft {
+      RBTree<int> tree = RBTree<int>();
+      tree.add(4);
+      tree.add(2);
+      tree.add(6);
+      tree.add(8);
+
+      string result = "\n"
+                " 4  \n"
+                "+++ \n"
+                "2 6 \n"
+                "  +#\n"
+                "   8\n";
+      check (TreeDump::toString(tree)) expect == result;
+
+      tree.remove(5);
+
+      string result2 = "\n"
+                " 4  \n"
+                "++-+\n"
+                "2  8\n"
+                "  #+\n"
+                "  6 \n";
+      check (TreeDump::toString(tree)) expect == result2;
+      check (tree.isValidRBTree()) expect true;
+    }
+
+    test removeRotateThreeRight {
+      RBTree<int> tree = RBTree<int>();
+      tree.add(4);
+      tree.add(2);
+      tree.add(8);
+      tree.add(6);
+
+      string result = "\n"
+                " 4  \n"
+                "++-+\n"
+                "2  8\n"
+                "  #+\n"
+                "  6 \n";
+      check (TreeDump::toString(tree)) expect == result;
+
+      tree.remove(9);
+
+      string result2 = "\n"
+                " 4  \n"
+                "+++ \n"
+                "2 6 \n"
+                "  +#\n"
+                "   8\n";
+      check (TreeDump::toString(tree)) expect == result2;
+      check (tree.isValidRBTree()) expect true;
+    }
+
+    test removeRotateCase1 {
+      // case 1 doesn't arise except after removals, so:
+      case2.remove(9);
+      RBTree<int>& case1 = case2;
+
+      string result = "\n"
+                "   15  \n"
+                " #=+-+ \n"
+                " 6   18\n"
+                "+++    \n"
+                "3 12   \n";
+      check (TreeDump::toString(case1)) expect == result;
+
+      case1.remove(2);
+
+      string result2 = "\n"
+                "   15  \n"
+                " +-+-+ \n"
+                " 6   18\n"
+                "#+#    \n"
+                "3 12   \n";
+      check (TreeDump::toString(case1)) expect == result2;
+      check (case1.isValidRBTree()) expect true;
+    }
+
+    test removeRotateCase2 {
+      string result = "\n"
+                "   15   \n"
+                " #=+--+ \n"
+                " 6    18\n"
+                "++-+    \n"
+                "3  12   \n"
+                "  #+    \n"
+                "  9     \n";
+      check (TreeDump::toString(case2)) expect == result;
+
+      case2.remove(2);
+
+      string result2 = "\n"
+                "    15  \n"
+                "  #=+-+ \n"
+                "  9   18\n"
+                " +++    \n"
+                " 6 12   \n"
+                "#+      \n"
+                "3       \n";
+      check (TreeDump::toString(case2)) expect == result2;
+      check (case2.isValidRBTree()) expect true;
+    }
+
+    test removeRotateCase3 {
+      case2.remove(9);
+      RBTree<int>& case3 = case2;
+      case3.add(14);
+      string result = "\n"
+		"   15   \n"
+		" #=+--+ \n"
+		" 6    18\n"
+		"+++     \n"
+		"3 12    \n"
+		"  +#    \n"
+		"   14   \n";
+      check (TreeDump::toString(case3)) expect == result;
+      case3.remove(2);
+      string result2 = "\n"
+		"    15  \n"
+		"  #=+-+ \n"
+		"  12  18\n"
+		" +++    \n"
+		" 6 14   \n"
+		"#+      \n"
+		"3       \n";
+      check (TreeDump::toString(case3)) expect == result2;
+      check (case3.isValidRBTree()) expect true;
+    }
+
+    test removeRotateCase4 {
+      case2.remove(9);
+      RBTree<int>& case4 = case2;
+      case4.add(4);
+      string result = "\n"
+		"   15   \n"
+		" #=+--+ \n"
+		" 6    18\n"
+		"++-+    \n"
+		"3  12   \n"
+		"+#      \n"
+		" 4      \n";
+      check (TreeDump::toString(case4)) expect == result;
+      case4.remove(14);
+      string result2 = "\n"
+	        "   15   \n"
+		" #=+--+ \n"
+		" 4    18\n"
+		"+++     \n"
+		"3 6     \n"
+		"  +#    \n"
+		"   12   \n";
+      check (TreeDump::toString(case4)) expect == result2;
+      check (case4.isValidRBTree()) expect true;
+    }
+
+    test removeRotateCase5 {
+      case2.remove(9);
+      RBTree<int>& case5 = case2;
+      case5.add(1);
+      string result = "\n"
+	"    15  \n"
+	"  #=+-+ \n"
+	"  6   18\n"
+	" +++    \n"
+	" 3 12   \n"
+	"#+      \n"
+	"1       \n";
+      check (TreeDump::toString(case5)) expect == result;
+      case5.remove(14);
+      string result2 = "\n"
+	"   15   \n"
+	" #=+--+ \n"
+	" 3    18\n"
+	"+++     \n"
+	"1 6     \n"
+	"  +#    \n"
+	"   12   \n";
+      check (TreeDump::toString(case5)) expect == result2;
+      check (case5.isValidRBTree()) expect true;
+    }
+    
+
+
+    /* TESTING RB CORRECTNESS (black-box) */
+
+    test addValid {
+      check (empty.isValidRBTree()) expect true;
+      check (oneInt.isValidRBTree()) expect true;
+      check (threeStrings.isValidRBTree()) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test noRemoveValid {
+      check (empty.remove("foo")) expect false;
+      check (sevenChars.remove('e')) expect false;
+      check (empty.isValidRBTree()) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test removeLeafLeftValid {
+      check (threeStrings.remove("abc")) expect true;
+      check (threeStrings.isValidRBTree()) expect true;
+      check (sevenChars.remove('b')) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test removeLeafRightValid {
+      check (threeStrings.remove("ghi")) expect true;
+      check (threeStrings.isValidRBTree()) expect true;
+      check (sevenChars.remove('n')) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test removeInternalLeftValid {
+      check (sevenChars.remove('d')) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+    test removeInternalRightValid {
+      check (sevenChars.remove('l')) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+    }
+
+    test removeRootValid {
+      check (threeStrings.remove("def")) expect true;
+      check (threeStrings.isValidRBTree()) expect true;
+      check (sevenChars.remove('h')) expect true;
+      check (sevenChars.isValidRBTree()) expect true;
+      check (oneInt.remove(3)) expect true;
+      check (oneInt.isValidRBTree()) expect true;
+    }
+
+    test removeMystery {  // what is this testing?  why does it fail?
+    //  stringResult = "\n"
+     // check (TreeDump::toString(case2)) expect == result;
+     
+     
+     
+      check (case2.remove(16)) expect false;
+      check (case2.contains(3)) expect true;
+      check (case2.contains(6)) expect true;
+      check (case2.contains(9)) expect true;
+      check (case2.contains(12)) expect true;
+      check (case2.contains(15)) expect true;
+      check (case2.contains(18)) expect true;
+    }
+
+      test breakadd {
+      threeStrings.add("ghi");
+      threeStrings.add("ghi");
+      threeStrings.add("ghi");
+      threeStrings.add("ghi");
+      threeStrings.add("ghi");
+      string result = "\n"
+		"      ghi       \n"
+		"   #===+===#    \n"
+		"  def     ghi   \n"
+		" +-+-+   +-+-+  \n"
+		"abc ghi ghi ghi \n"
+		"             +# \n"
+		"             ghi\n";
+      check (TreeDump::toString(threeStrings)) expect == result;
+      check (threeStrings.isValidRBTree()) expect true;
+    }
+   
+      test specialrootfusion {
+      		threeStrings.add("aaa");
+		string result = "\n"
+		  	"   def  \n"
+			"  +-+-+ \n"
+			" abc ghi\n"
+			" #+     \n"
+			"aaa     \n";
+	check (TreeDump::toString(threeStrings)) expect == result;
+		threeStrings.remove("aaa");
+		string result2 = "\n"
+		  	"  def  \n"
+			" +-+-+ \n"
+			"abc ghi\n";
+	check (TreeDump::toString(threeStrings)) expect == result2;
+		threeStrings.remove("abc");
+		string result3 = "\n"
+		  	"def \n"
+			" +# \n"
+			" ghi\n";
+	check (TreeDump::toString(threeStrings)) expect == result3;
+    }
+}
+
+
+
+
+
+
+
+

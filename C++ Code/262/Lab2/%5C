@@ -1,0 +1,165 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string>
+#include <queue>
+#include <unordered_set>
+#include "Pathfinder.h"
+
+/*
+struct AstarItem
+{
+  Location current;
+  int from_start;
+}*/
+
+bool Pathfinder::contains(const Location& loc) const
+{
+    return loc.getX() >= 0 and loc.getY() < col
+       and loc.getY() >= 0 and loc.getY() < row;
+}
+
+char Pathfinder::elementAt (const Location& loc) const
+{
+  if (!contains(loc))
+    throw runtime_error("Location " + loc.toString()
+			  + " not valid in this Maze");
+  return grid[loc.getX()][loc.getY()];
+}
+
+
+
+bool Pathfinder::doesPathExist() const
+{
+  priority_queue< AstarItem > agenda;
+  agenda.push( AstarItem{start, 0} );
+  unordered_set< Location > explored;
+  
+  while (not agenda.empty())
+  {
+    AstarItem node = agenda.top();
+    agenda.pop();
+
+    if (explored.count(node.current) > 0)
+      continue;
+
+    explored.insert(node.current);
+
+    if (node.current.isEqualTo(finish))
+    { 
+      cout <<  node.from_start;
+      break;
+    }
+
+    for (AstarItem Add : node.GetAdj())
+    {
+      if (explored.count(Add.current) > 0)
+	continue;
+
+      agenda.push(AstarItem{Add.current, node.from_start + 1});
+    }
+  }
+  return true;
+}
+
+vector<AstarItem> AstarItem::GetAdj() const
+{
+  Pathfinder node;
+  Location North = current.north();
+  Location South = current.south();
+  Location East = current.east();
+  Location West = current.west();
+  vector<AstarItem> retvec;
+
+  if (node.contains(South) and node.elementAt(South) != '#')
+  {
+    retvec.push_back(AstarItem{South, from_start + 1});
+  }
+  if (node.contains(North) and node.elementAt(North) != '#')
+  {
+    retvec.push_back(AstarItem{North, from_start + 1});
+  }
+  if (node.contains(East) and node.elementAt(East) != '#')
+  {
+    retvec.push_back(AstarItem{East, from_start + 1});
+  }
+  if (node.contains(West) and node.elementAt(West) != '#')
+  {
+    retvec.push_back(AstarItem{West, from_start + 1});
+  }
+
+ return retvec;
+}
+
+void Pathfinder::readgrid(FILE * fp)
+{
+  char charinput;
+  fscanf(fp, "%d %d", &col, &row);
+  
+  grid.resize(col);
+
+  for (int x = 0; x < col; ++x)
+  {
+    grid[x].resize(row);
+  }
+
+  for (int y = 0; y < row; ++y)
+  {
+    for (int x = 0; x < col; ++x)
+    {
+      
+        fscanf(fp, "%c", &charinput);
+      if (charinput != '\n')
+      {	
+        grid[x][y] = charinput;
+      }
+
+      else
+       {
+	 fscanf(fp, "%c", &charinput);
+	 grid[x][y] = charinput;
+       }
+      
+      if (charinput == 'o')
+      {
+	start = Location(x, y);
+      }
+
+      if (charinput == '*')
+      {
+	finish = Location(x, y);
+      }
+    }
+  }
+}
+
+
+void Pathfinder::printgrid() const
+{
+  for (int y = 0; y < row; ++y)
+  {
+    for (int x = 0; x < col; ++x)
+    {
+      cout << grid[x][y];
+    }
+  cout << endl;
+  }
+}
+
+int main(int argc, char * argv[])
+{
+  
+  Pathfinder M;
+
+  FILE * fp;
+  
+  fp = fopen (argv[1], "r+");
+
+  M.readgrid(fp);
+  M.doesPathExist();
+  M.printgrid();
+
+
+
+return 0;
+}
+

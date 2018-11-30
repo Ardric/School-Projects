@@ -1,0 +1,4 @@
+Avg add (random) : 651ns
+Avg search (random): 444ns
+Avg add (order):  63165ns
+Avg search (order):  28576ns

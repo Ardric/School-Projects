@@ -1,0 +1,160 @@
+#include "TreeDump.h"
+using namespace std;
+// EDITED 26 Aug 4:45pm
+test suite TreeDump
+{
+  tests:
+    test leaf 
+    {
+      RBTree<string> oneString = RBTree<string>();
+      oneString.add("baz");
+      check (TreeDump::toString(oneString)) expect == "\nbaz\n";
+    }
+    test balanced
+    {
+      typedef RBTree<char>::TreeNode TN;
+      TN* sevenChars = new TN('h', nullptr, false);
+      sevenChars->left = new TN('d', sevenChars, false);
+      sevenChars->right = new TN('l', sevenChars, false);
+      sevenChars->left->left = new TN('b', sevenChars->left, false);
+      sevenChars->left->right = new TN('f', sevenChars->left, false);
+      sevenChars->right->left = new TN('j', sevenChars->right, false);
+      sevenChars->right->right = new TN('n', sevenChars->right, false);
+      string result = "\n"
+                "   h   \n"
+                " +-+-+ \n"
+                " d   l \n"
+                "+++ +++\n"
+                "b f j n\n";
+      check (TreeDump::toString<char>(sevenChars)) expect == result;
+    }
+    test left 
+    {
+      typedef RBTree<int>::TreeNode TN;
+      TN* tree = new TN(4, nullptr, false);
+      tree->left = new TN(3, tree, false);
+      tree->left->left = new TN(2, tree->left, false);
+      tree->left->left->left = new TN(1, tree->left->left, false);
+
+      string result =  "\n"
+                "   4\n"
+                "  ++\n"
+                "  3 \n"
+                " ++ \n"
+                " 2  \n"
+                "++  \n"
+                "1   \n";
+      check (TreeDump::toString<int>(tree)) expect == result;
+    }
+    test right 
+    {
+      typedef RBTree<int>::TreeNode TN;
+      TN* tree = new TN(1, nullptr, false);
+      tree->right = new TN(2, tree, false);
+      tree->right->right = new TN(3, tree->right, false);
+      tree->right->right->right = new TN(4, tree->right->right, false);
+
+      string result =  "\n"
+                "1   \n"
+                "++  \n"
+                " 2  \n"
+                " ++ \n"
+                "  3 \n"
+                "  ++\n"
+                "   4\n";
+      check (TreeDump::toString<int>(tree)) expect == result;
+    }
+    test wideroot 
+    {
+      typedef RBTree<string>::TreeNode TN;
+      TN* tree = new TN("wide string", nullptr, false);
+      tree->left = new TN("a", tree, false);
+      tree->right = new TN("z", tree, false);
+
+      string result = "\n"
+                "wide string\n"
+                "    +++    \n"
+                "    a z    \n";
+      check (TreeDump::toString<string>(tree)) expect == result;
+    }
+    test wideleft 
+    {
+      typedef RBTree<string>::TreeNode TN;
+      TN* tree = new TN("y", nullptr, false);
+      tree->left = new TN("wide string", tree, false);
+      tree->right = new TN("z", tree, false);
+
+      string result = "\n"
+                "        y    \n"
+                "     +--+---+\n"
+                "wide string z\n";
+      check (TreeDump::toString<string>(tree)) expect == result;
+    }
+    test wideright 
+    {
+      typedef RBTree<string>::TreeNode TN;
+      TN* tree = new TN("b", nullptr, false);
+      tree->left = new TN("a", tree, false);
+      tree->right = new TN("wide string", tree, false);
+
+      string result = "\n"
+                "   b         \n"
+                "+--+---+     \n"
+                "a wide string\n";
+      check (TreeDump::toString<string>(tree)) expect == result;
+    }
+    test mixed 
+    {
+      typedef RBTree<string>::TreeNode TN;
+      TN* tree = new TN("ghi", nullptr, false);
+      tree->left = new TN("abc", tree, false);
+      tree->right = new TN("nopqr", tree, false);
+      tree->right->left = new TN("k", tree->right, false);
+      tree->right->right = new TN("xyz", tree->right, false);
+      tree->right->left->left = new TN("jkl", tree->right->left, false);
+      tree->right->left->right = new TN("lm", tree->right->left, false);
+
+      string result = "\n"
+                "    ghi       \n"
+                " +---+---+    \n"
+                "abc    nopqr  \n"
+                "      +--+--+ \n"
+                "      k    xyz\n"
+                "     ++-+     \n"
+                "    jkl lm    \n";
+      check (TreeDump::toString<string>(tree)) expect == result;
+    }
+    test mixedRB
+    {
+      typedef RBTree<string>::TreeNode TN;
+      TN* tree = new TN("ghi", nullptr, false);
+      tree->left = new TN("abc", tree, false);
+      tree->right = new TN("nopqr", tree, true);
+      tree->right->left = new TN("k", tree->right, false);
+      tree->right->right = new TN("xyz", tree->right, false);
+      tree->right->left->left = new TN("jkl", tree->right->left, true);
+      tree->right->left->right = new TN("lm", tree->right->left, true);
+      /* In 234 form:
+       *       (ghi      nopqr)
+       *     /        |         \
+       * (abc)    (jkl k lm)   (xyz)
+       * */
+
+      string result = "\n"
+                "    ghi       \n"
+                " +---+===#    \n"
+                "abc    nopqr  \n"
+                "      +--+--+ \n"
+                "      k    xyz\n"
+                "     #+=#     \n"
+                "    jkl lm    \n";
+      check (TreeDump::toString<string>(tree)) expect == result;
+    }
+    test dumpStream {
+      RBTree<string> one = RBTree<string>();
+      one.add("foo");
+      ostringstream out;
+      TreeDump::toStream(one, out);
+      check (out.str()) expect == "\nfoo\n";  // EDITED to add first \n
+    }
+}

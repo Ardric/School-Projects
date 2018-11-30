@@ -1,0 +1,31 @@
+#include <sstream>
+#include "Graph.h"
+#include "Dijkstra.h"
+using namespace std;
+
+test suite dijkstra
+{
+fixture:
+  Graph<string> leftboard = Graph<string>();
+  setup
+  {
+    istringstream leftstr("A B 6\nB C 2\nB E 20\nC D 3\nC E 4\nE D 8\n");
+    leftboard.read(leftstr);
+  }
+
+tests:
+  test leftboard
+  {
+    check (dijkstra(leftboard, "E", "E")) expect == 0;
+    check (dijkstra(leftboard, "E", "B")) expect == 6;
+    check (dijkstra(leftboard, "E", "A")) expect == 12;
+    check (dijkstra(leftboard, "E", "C")) expect == 4;
+    check (dijkstra(leftboard, "E", "D")) expect == 7;
+  }
+
+  test notinthere
+  {
+    check (dijkstra(leftboard, "E", "H")) expect == -1;
+  }
+
+}
