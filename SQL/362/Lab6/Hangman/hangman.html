@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang=en>
+	<head>
+		<title>ISCS 375 Hangman</title>
+		<meta charset=utf-8>
+		<script src="hangman.js"></script>
+		<link rel="stylesheet" href="hangman.css" />
+	</head>
+	<body onload="load_game()">
+		<svg xmlns="http://www.w3.org/2000/svg" width=300px height=400px id="gallows">
+			<rect x=0 y=0 width=300px height=400px fill=white stroke=black />
+			<polyline points="75,380 75,280 225,280 225,380" fill=none stroke=black stroke-width=2px />
+			<polyline points="150,280 150,20 80,20 80,50" fill=none stroke=black stroke-width=2px />
+		</svg>
+		<div id="letters"><h2>Guessed Letters:</h2></div>
+		<div id="word">
+			<div id="contents"></div>
+		</div>
+	</body>
+</html>

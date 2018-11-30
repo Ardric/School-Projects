@@ -1,0 +1,288 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html><head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<meta name="Author" content="Scott McElfresh"><title>CMSC 208 (Grammars, Languages and Automata)-Spring 2016</title>
+
+<link href="../208Style.css" type="text/css" rel="stylesheet"></head>
+<body style="color: rgb(0, 0, 0);" alink="#000099" link="#000099" vlink="#990099">
+<table border="1" cellpadding="0" cellspacing="0" width="99%">
+<tbody>
+<tr>
+<td valign="top" width="50%"><i> CMSC
+208</i><br>
+</td>
+<td align="right" valign="top"><i>Spring
+2016</i><br>
+</td>
+</tr>
+</tbody>
+</table>
+<table bgcolor="white" border="1" width="99%">
+<tbody>
+<tr>
+<td>
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tbody>
+<tr>
+<td valign="top" width="33%"><span style="font-weight: bold;"></span>03/27/2016<br>
+</td>
+<td align="center" valign="top" width="33%"><u><b>Programming
+and Automata</b></u><b><u><br>
+</u></b></td>
+<td align="right" valign="top" width="33%"><b>Due: Wed, April 6<br>1pm<br>
+</b></td>
+</tr>
+</tbody>
+</table>
+<br><div style="text-align: center;"><font size="+1">For this assignment, you may work in pairs (no groups of 3 or more will be permitted). &nbsp; &nbsp;<br>By putting more than one name on the assignment, you are stating that both people contributed significantly to each part.</font><br></div><br><h3>Assignment: &nbsp; </h3>
+For this assignment, log on to the Hardy House machines and
+changedirectory to where you wish this assignment to reside.<br>
+Type:<br>
+<tt>
+cp -r &nbsp;
+~scottmce/public_html/Spring2016/CMSC208-Grammars/exercises/
+DFAprogramming &nbsp; &nbsp;.<br>
+</tt><br>
+Note the period at the end of the previous line. &nbsp; This will
+copy a folder called DFAprogramming to your directory.
+&nbsp; Your work will be in this folder and you will submit this
+folder.<br>
+<br>
+You are welcome to do your work on your personal machine if you'd like,
+but you will need to upload your work to this directory when you are
+ready to submit.<br>
+<br>
+<img style="width: 100%; height: 2px;" alt="yellow bar separator" src="../ylbar.gif"><br>
+<span style="font-weight: bold;"><br>
+0)</span> &nbsp;Consider representing a DFA with a text file
+with the
+following format:<br>
+<br>
+An n-state automaton will be labeled by states 0 - n-1.
+&nbsp; &nbsp;<br>
+<ul>
+<li>Line 1: &nbsp;the alphabet, with no spaces
+between
+characters</li>
+<li>Line 2: &nbsp;the number of states (call it n)</li>
+<li>Lines 3 through 3 + (n-1)</li>
+<ul>
+<li>line x indicates row of the transition table
+associated
+with the state &nbsp;x - 3</li>
+<li>the columns are in the order fo the alphabet given
+in
+line 1, separated by spaces</li>
+</ul>
+<li>Line: 3 + n:</li>
+<ul>
+<li>a single number indicating the initial state</li>
+</ul>
+<li>Line 3 + n + 1:</li>
+<ul>
+<li>a list of numbers indicating final accepting states</li>
+</ul>
+</ul>
+Thus, the automaton from the exam would be represented as:<br>
+<table border="0" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td width="40"></td>
+<td><tt>ef<br>
+3<br>
+0 1<br>
+0 2<br>
+0 2<br>
+0<br>
+2</tt></td>
+</tr>
+</tbody>
+</table>
+<br>
+<span style="font-weight: bold;">Your task:</span><br>
+Create text files with this format for the following automata.
+&nbsp;Use the filenames given.<br>
+<table border="1" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td align="undefined" valign="undefined">Language/automaton</td>
+<td align="undefined" valign="undefined">filename</td>
+</tr>
+<tr>
+<td align="undefined" valign="undefined"><span style="font-size: 12pt; line-height: 115%; font-family: &quot;Courier New&quot;;">{ACG,
+ACC, ACT, TCA}</span></td>
+<td align="undefined" valign="undefined">DNA1.txt</td>
+</tr>
+<tr>
+<td>2c on page 47 of the text</td>
+<td>ex2c.txt</td>
+</tr>
+<tr>
+<td>5c on page 47 of the text</td>
+<td>ex5c.txt</td>
+</tr>
+<tr>
+<td>9a on page 48</td>
+<td>ex9a.txt</td>
+</tr>
+<tr>
+<td>9f on page 48</td>
+<td>ex9f.txt</td>
+</tr>
+<tr>
+<td><img style="width: 487px; height: 297px;" alt="pic of an automaton" src="automotaPicture.jpg"></td>
+<td valign="top">picture.txt</td>
+</tr>
+</tbody>
+</table>
+<br>
+<img style="width: 100%; height: 2px;" alt="yellow bar separator" src="../ylbar.gif"><br>
+<span style="font-weight: bold;"><br>
+1)</span> &nbsp; You are to write a program that will
+take two
+command line arguments:<br>
+<ul>
+<li>name of a file with a DFA description (as above)</li>
+<li>name of a file that has a set of strings</li>
+</ul>
+The program will, for each string, say whether it is accepted by the
+DFA.<br>
+<br>
+The first line of the file will contain a number indicating the number
+of lines remaining in the file. &nbsp; Each lilne will
+&nbsp;then contain a string. &nbsp;(note that a blank line will
+indicate an empty string)<br>
+EG<br>
+<table border="0" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td width="100"></td>
+<td><tt>7<br>
+ef<br>
+ffeeefff<br>
+feef<br>
+<br>
+ffffffffff<br>
+eefffeeefffeee<br>
+ffeffff</tt></td>
+</tr>
+</tbody>
+</table>
+<br>
+<br>
+<b>Expected output format:</b><br>
+To the console, your program should report ACCEPTED or NOT ACCEPTED
+followed by a comma (space on each side of the colon) followed by the
+string itself. &nbsp;Your output should contain one line per string
+and no other output.<br>
+<br>
+Sample output when using&nbsp; the example files above:<br>
+<br>
+<table border="0" cellpadding="2" cellspacing="2" height="151" width="381">
+<tbody>
+<tr>
+<td width="100"></td>
+<td valign="top"><tt>NOT ACCEPTED : ef<br>
+ACCEPTED : ffeeefff<br>
+NOT ACCEPTED : feef<br>
+NOT ACCEPTED : <br>
+ACCEPTED : ffffffffff<br>
+NOT ACCEPTED:&nbsp;</tt><tt>
+eefffeeefffeee</tt><br>
+<tt>ACCEPTED : ffeffff</tt></td>
+</tr>
+</tbody>
+</table>
+<br>
+The program has been started for you in the file TestDFA.cpp.
+&nbsp; &nbsp; This program reads the command line arguments
+into variables for you to be able to read the info from the files.<br>
+<br>
+A sample of what I will do to test your program:<br>
+<tt>
+g++ &nbsp;TestDFA.cpp -o runit.exe<br>
+./runit.exe &nbsp; DFAfromExam.txt &nbsp;
+SampleInputForDFAfromExam.txt<br>
+</tt>
+<br>
+<b>Testing:</b><br>
+You will need to come up with your own testing
+inputs for each of the automata. &nbsp; The table below indicates
+the
+required filenames for the testing inputs:<br> <table border="1" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td style="font-weight: bold; text-align: center;" valign="undefined">Language/automaton</td>
+<td style="font-weight: bold; text-align: center;" valign="undefined">filename</td><td style="text-align: center;" valign="undefined"><span style="font-weight: bold;">inputfile</span></td>
+</tr>
+<tr>
+<td align="undefined" valign="undefined"><span style="font-size: 12pt; line-height: 115%; font-family: &quot;Courier New&quot;;">{ACG,
+ACC, ACT, TCA}</span></td>
+<td align="undefined" valign="undefined">DNA1.txt</td><td align="undefined" valign="undefined">SampleInput-DNA1.txt</td>
+</tr>
+<tr>
+<td>2c on page 47 of the text</td>
+<td>ex2c.txt</td><td align="undefined" valign="undefined">SampleInput-ex2c.txt</td>
+</tr>
+<tr>
+<td>5c on page 47 of the text</td>
+<td>ex5c.txt</td><td align="undefined" valign="undefined">SampleInput-ex5c.txt</td>
+</tr>
+<tr>
+<td>9a on page 48</td>
+<td>ex9a.txt</td><td align="undefined" valign="undefined">SampleInput-ex9a.txt</td>
+</tr>
+<tr>
+<td>9f on page 48</td>
+<td>ex9f.txt</td><td align="undefined" valign="undefined">SampleInput-ex9f.txt</td>
+</tr>
+<tr>
+<td><img style="width: 487px; height: 297px;" alt="pic of an automaton" src="automotaPicture.jpg"></td>
+<td>picture.txt</td><td>SampleInput-picture.txt</td>
+</tr>
+</tbody>
+</table>
+<br>
+<br>
+<b>Suggestion:</b><br>
+Read the DFA file into the following variables:<br>
+<tt>
+vector&lt;char&gt; alphabet;<br>
+vector &lt; vector&lt;int&gt; &gt;
+&nbsp;transitionTable;<br>
+int initialState;<br>
+vector &lt;int&gt; &nbsp;finalStates;<br>
+</tt><br>
+<br>
+<br>
+<img style="width: 100%; height: 2px;" alt="yellow bar separator" src="../ylbar.gif"><br>
+<span style="font-weight: bold;"><br></span><span style="font-weight: bold;">2) &nbsp; </span>Now, consider NFAs. &nbsp; &nbsp; Your task is to create:<br><ul><li>&nbsp;a set of variables that will hold an NFA.</li><li>a file format for storing NFAs</li><li>code to read in an NFA file into the variables.<span style="font-weight: bold;"></span></li><li>Extra credit: &nbsp;code that traces the automaton and determines if a given string is to be accepted.</li></ul><br>In the folder, you should have the following files:<br><ul><li>TestNFA.cpp &nbsp;- the program that holds the variables and reads the contents of the file into those variables</li><li>Format.txt - a text file describing the file format for the NFA inputs, including at least one example</li><li>ex12pg55.txt - a text file describing the NFA in exercise 12 on page 55 of the text</li></ul>
+<br>
+<img style="width: 100%; height: 2px;" alt="yellow bar separator" src="../ylbar.gif"><span style="font-weight: bold;"><br></span><br><span style="font-weight: bold;">3)</span> &nbsp;EXTRA CREDIT:<br>
+Create a subfolder called NamedStates. &nbsp; &nbsp;Create new
+data files and a program that allows the states to have names rather
+than just numbers. &nbsp;For instance, the 3 state automaton from
+the exam might have a file that looks like this:<br>
+<tt>ef<br>
+3<br>
+Spot Fido Rover<br>
+</tt><tt>Spot: Spot</tt><tt>&nbsp;</tt><tt>Fido</tt><br>
+<tt>Rover: Spot</tt><tt>&nbsp;</tt><tt>Rover</tt><br>
+<tt>Fido: Spot</tt><tt>&nbsp;</tt><tt>Rover</tt><br>
+<tt>Spot</tt><br>
+<tt>Rover<br>
+</tt><br>
+Note that the lines of the file indicating the rows of the transition
+table are now not in any particular order, but are first labeled with
+the current state of the transition.<br><br><h3>Handin:</h3>Create
+a file called Names.txt in the folder. &nbsp; In that file should be
+the name(s) of the people who worked on this assignment. &nbsp;
+&nbsp;By putting a name here, you are indicating that both people
+contributed significantly to each part of the assignment. &nbsp; <br><br>Detailed instructions will be given on Mon, April 4.<br><br>
+<br>
+<br>
+</td>
+</tr>
+</tbody>
+</table>
+</body></html>

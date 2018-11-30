@@ -1,0 +1,19 @@
+10
+4
+-1 0 1 -1 0 0
+-2 2 1
+3 -2 2
+-2 -2 3
+0
+3
+
+
+
+The format for NFA's is the same as the DFA textfiles except that it was one extra
+	state per line compared to the alphabet.  This is for the lambda option. 
+	-1 is to symbolise where you have two or more choices on where to transition to.
+	For example in state 0 if you see a 1, you can go to state 0 or 1.  -2 represents
+	where the choice wasn't  made clear.  So for example on line 4, in the drawn NFA
+	you arn't given a place to go if you see a 1.
+
+instead of g++ on the command line my code compiles with "compile" rather than "g++".

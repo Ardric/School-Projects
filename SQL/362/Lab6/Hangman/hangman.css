@@ -1,0 +1,54 @@
+/*svg, div {
+	border: 1px solid blue;
+}
+*/
+
+
+#gallows {
+	float: left;
+}
+
+#letters {
+	float: right;
+	width: 4in;
+	min-height: 3in;
+	display: inline-block;
+
+	color: green;
+	border: green 4px solid;
+
+	text-align: center;
+	font-weight: bold;
+}
+
+#word {
+	position: absolute;
+	margin: 2em auto;
+	width: 80%;
+	min-height: 3in;
+	bottom: 0;
+
+	left: 50%; 
+	transform: translate(-50%, 0%);
+}
+
+
+#contents {
+	display: inline-block;
+	margin: 1em auto; 
+	position: relative;
+	bottom: 0px;
+	left: 50%;
+	transform: translate(-50%, 100%);
+}
+
+
+.guessedletter {
+	font-weight: bold;
+	font-size: 48pt;
+	font-family: monospace;
+
+	display: inline-block;
+	position: absolute;
+}
+
