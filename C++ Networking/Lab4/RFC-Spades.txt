@@ -1,0 +1,196 @@
+Spades Protocol - Version 1
+
+Table of Contents
+1. Basic Operation
+2. The CONNECTION State: 
+	PLYR Command
+	OBSV Command
+	QUIT Command
+3. The SET-UP State:
+4. The BIDDING State:
+	IBID Command
+	QUIT Command
+	CHAT Command
+5. The PLAY State:
+	CARD Command
+	QUIT Command
+	CHAT Command
+6. The PROCESSING State
+7. Spades Command Summary
+
+
+--------------------------------------------------------------[1]
+
+
+2. Basic Operation
+	
+	This document specifies how clients and servers will interact
+	according to the Spades Protocol. 
+	
+	Commands in Spades consist of a case-sentitive keyword, possibly
+	followed by one argument.
+	Keywords and arguments consist of printble ASCII characters.
+	Keywords and arguments are each separated by a single SPACE
+	character.
+        Keywords are 4 characters long.
+	Each argument will be 1 or 2 characters long.
+	Client messages are terminated with <crlf>.
+	
+	Responses in Spades 
+	All server responses end in a <crlf>.
+        Reponses may be up to 254 characters long (256 with <crlf>).
+	There are currently two status indicators: positive ("+")
+	and negative ("-"). Servers must send status keywords
+ 	in uppercase.
+
+	When the Spades server comes online, it will be running in the
+	CONNECTION state. In this state, the server will accept PLYR, OBSV,
+	and QUIT commands. When a client signs in, the server will generate
+	a welcome message to the client. It will then respond to the previously
+	stated commands with either a "+PLYR" followed by a message or a "-" 
+	followed by a message.
+
+	Once all player spots have been filled, the server will enter the
+	SET-UP state. In this state, the server will choose a player as a dealer
+	and dealcards appropriately. The server will the move on to the BIDDING state. 
+
+	In the BIDDING state, the server now allows players and observers to chat
+	and collects bids from all the players. Once all bids are in it moves on
+	to the PLAY state.
+
+	In the PLAY state, the server continues to allow players to chat but now allows
+	players to play cards.
+
+	When the 13th trick ends, the server enters the PROCESSING state and determines
+	whether the game has ended or just the round. If the game has completed, the server
+	messages all players and observers and resets to the BIDDING state. If the round
+	ended, the game returns to the BIDDING state.
+
+---------------------------------------------------------------[2]
+
+3. The CONNECTION state
+
+	While in this state, the server is accepting 3 commands. PLYR,
+	OBSV, and QUIT. Whenever a connection is made, the server will
+	respond with a greeting.
+		
+		Example: "+PLYR Welcome to the Spades server, we hope you enjoy the game!"
+
+	On PLYR command, if it is given with no arguments, the server will
+	choose the first player slot that is available and assign
+	the client to be that player. The server will then return a "+PLYR" saying
+	that the client has been assigned to the particular player. If an argument
+	is given, the server will check if that particular slot is open, if so
+	it will send a "+PLYR" that they have been assigned to that player. If either
+	of these fail, the server will return a "-" saying that all positions are filled
+	or that the one specificed is filled and the server will state which slots
+	are still open.
+
+	The server will accept all OBSV commands from new connections.
+
+	If a player or observer want to change their roles, they will need to 
+	send a QUIT command to have their connection shut down so they can
+	reconnect with the new role.
+
+--------------------------------------------------------------[3]
+
+4. The SET-UP state
+	
+	Once all player slots have been assigned, the server will enter
+	the SET-UP state and will no longer accept incoming connections.
+
+	Once all players are accounted for, the server will choose a player
+	at random to be the psuedo dealer. The server will then deal starting
+	with the next player and will rotate in the same order between games.
+
+	The server will send each player their hand like so:
+
+		Example: HA TS 9C 4H
+
+---------------------------------------------------------------[4]
+
+The BIDDING state
+
+	Once all players have received their hand, the server enters
+	the BIDDING state.
+
+	In this state, the server will ask each player, in the same
+	order the cards were delt, what they would like to bid. The server
+	broadcasts each bid to both the chat channel and to each player.
+	
+	Each player will bid with the IBID command
+
+		Example: IBID 05
+
+	Also, the CHAT command is now available. Typing CHAT followed
+	by a string of up to 254 characters will have a message sent out
+	to the chat channel.
+		
+		Example: CHAT Hello everyone
+
+	Typing QUIT in the BIDDING state closes the connection to the
+	server. If QUIT was typed by player, the game broadcasts out 
+	that a player has left and the server returns to the CONNECTION state. 
+	If QUIT was typed by a OBSV, the game stays in the current state.
+
+----------------------------------------------------------------[5]
+
+The PLAY state
+
+	Once all bids have been placed, the server enters the PLAY state.
+
+	Continuing in the same player order as before, the server asks
+	each player to play a card. The server checks the card played against
+	what it knows the player to have and to what they have already played
+	returning "-" if the move is invalid. Once a correct move is played,
+	the server broadcasts that card to all other players and chat.
+
+	This rotation continues until all cards have been played by each player.
+
+	To play a card, the client can type:
+
+		CARD AH
+
+	CHAT is still allowed in the PLAY state and QUIT continues to operate
+	as it did in the BIDDING state.
+
+----------------------------------------------------------------[6]
+
+The Processing state
+
+	Once all cards have been played, the server enters the Processing state.
+	Once the server has determined whether the total has been reached or not,
+	it either sends a game over message to players and chat with statistics
+	about the results or returns to the bidding state to start the next round.
+
+----------------------------------------------------------------[7]
+
+Command Summary
+
+	Welcome Message:
+		"+PLYR Welcome to our Spades server, we hope you enjoy the game!"
+
+	PLYR:
+		"+PLYR, you have been assigned to player x"
+		"-, all player positions have been filled"
+
+	PLYR 2:
+		"+PLYR, you have been assigned to player 2"
+		"-, player 2 already assigned, available player positions are: 1, 3, 4"
+
+	OBSV:
+		"+PLYR, joined as observer"
+
+	QUIT:
+		"+QUIT, shutting down connection"
+
+	IBID 04:
+		"+ACTV T1 BID 5"
+
+	CHAT Hello everyone
+		"+CHAT Hello everyone"
+
+	CARD AH
+		"+ACTV P1 PLAY AH"
+		"-, card previously played"
+		"-, card not in your hand"	
